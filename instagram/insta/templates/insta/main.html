@@ -1,0 +1,138 @@
+{% extends 'insta/base.html' %}
+{% block content %}
+
+<!-- 점보트론 -->
+<div class="jumbotron">
+    <h1 class="display-4">CBNU Instagram</h1>
+    <p class="lead">Welcome to CBNU Instagram</p>
+</div>
+<!-- 점보트론 끝 -->
+
+<!-- 정렬 -->
+<div>
+  <a type="button" class="btn btn-outline-info btn-sm" href="{% url 'new' %}">새 글</a>
+<div class="btn-group float-right">
+  <div class="d-flex">
+    <div class="dropdown mr-1">
+      <button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuOffset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-offset="10,20">
+        정렬
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
+          <a class="dropdown-item" href="?sort=new">최신</a>
+          <a class="dropdown-item" href="?sort=like">좋아요 높은 순</a>
+          <a class="dropdown-item" href="?sort=like_reverse">좋아요 낮은 순</a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- 정렬 끝 -->
+<br>
+<!-- post -->
+{% for post in posts %}
+<div class="card mt-5">
+    <div class="card-header">
+        <img src="{{ post.user.profile.url }}" class="profile" style="margin-right:20px;"></img>
+        {{post.user}}
+        <span class="float-right" data-toggle="tooltip" data-placement="right" title="{{ post.updated | date:'Y년 n월 j일 a g:i'}}">{{ post.updated | timesince }}전 
+          <br>
+        <form action="{% url 'like' post.id %}" method="post" class="float-right">
+          {% csrf_token %}
+          {% if post.id in liked_post %}
+          <button style="border: none; background-color: Transparent;" onclick="location.href='{{post_pk}}/like/'"><i class="fas fa-heart fa-2x" style="color: pink;"></i></button>
+              {{ post.like_count }}
+          {% else %}
+          <button style="border: none; background-color: Transparent;" onclick="location.href='{{post_pk}}/like/'"><i class="far fa-heart fa-2x" style="color: pink;"></i></button>
+              {{ post.like_count }}
+          {% endif %}
+        </form>
+        </span>
+    </div>
+    <img src="{{ post.image.url }}" class="card-img-top">
+    <div class="card-body" style="border-top: 0.5px solid lightgray">
+        <p class="card-text">{{ post.caption }}</p>
+    </div>
+    <div class="card-footer text-muted"></div>
+
+    <!-- 수정쓰 -->
+
+    {% if post.user == request.user %}
+    <div class="btn-group float-right">
+      <a href="{% url 'edit' post.id %}"><i class="far fa-edit" style="color: lightgray; font-size:35px;"></i></a>
+    
+    <!-- 삭제쓰 -->
+    <div class="btn-group float-right">
+        <a href="{% url 'delete' post.id %}"><i class="far fa-trash-alt" style="color: lightgray; font-size:35px;" onclick="return confirm('삭제하시겠습니까?')"></i></a>
+    </div>
+
+    {% endif %}
+
+    <!-- 수정 삭제끝 -->
+
+
+    <!-- 댓글 -->
+    <button type="button" class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#post-{{ post.id }}" style="position: relative; float:left;" >
+        댓글 보기
+      </button> 
+     </div>
+
+
+      
+<!-- 댓글 모달 시작 -->
+<div class="modal fade" id="post-{{ post.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">댓글</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {% for comment in post.comment_set.all %}
+          <blockquote class="blockquote">
+            <img src="{{comment.user.profile.url}}" class = "profile" style="position: absolute;">
+            <div style="padding-inline-start:15%">
+              <p class="mb-0">{{ comment.content }}</p>
+              <footer class="blockquote-footer">{{ comment.user }}  <a href="{% url 'delete_comment' comment_pk=comment.id %}" onclick="return confirm('댓글을 삭제하겠습니까?')">삭제하기</a></footer>
+            </div>
+            
+          </blockquote>
+          {% endfor %}
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: center;">
+          <form method='post' action="{% url 'create_comment' post.id %} ">
+            {%csrf_token%}
+            <div style="display: flex; flex-direction: column; ">
+              <textarea name="{{ comment_form.content.name }}" class="form-control" cols="50" placeholder="댓글을 남겨주세요~!"></textarea>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                <button type="submit" class="btn btn-primary">댓글 작성</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 댓글 모달 끝 -->
+{% endfor %}
+
+
+<!-- post 끝 -->
+
+
+
+<style>
+  
+    .profile{
+        border: 2px solid black;
+        border-radius: 50%;
+        height: 50px;
+        width: 50px;
+    }
+
+ 
+</style>
+
+{% endblock %}
